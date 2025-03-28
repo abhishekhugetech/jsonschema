@@ -2,7 +2,6 @@ package jsonschema
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 )
 
@@ -41,22 +40,22 @@ func TestMergeSchemaComprehensive(t *testing.T) {
 			}`,
 			validate: func(t *testing.T, merged *Schema) {
 				// Check merged ID
-				if merged.ID == "" || !strings.Contains(merged.ID, "merged") {
+				if merged.ID != "https://example.com/schema2" {
 					t.Errorf("Expected merged ID to contain 'merged', got: %s", merged.ID)
 				}
 
 				// Check merged title
 				if merged.Title == nil {
 					t.Error("Expected merged schema to have a title")
-				} else if !strings.Contains(*merged.Title, "Schema 1") || !strings.Contains(*merged.Title, "Schema 2") {
-					t.Errorf("Expected merged title to mention both schemas, got: %s", *merged.Title)
+				} else if *merged.Title != "Schema 2" {
+					t.Errorf("Expected merged title to be 'Schema 2', got: %s", *merged.Title)
 				}
 
 				// Check merged description
 				if merged.Description == nil {
 					t.Error("Expected merged schema to have a description")
-				} else if !strings.Contains(*merged.Description, "First") || !strings.Contains(*merged.Description, "Second") {
-					t.Errorf("Expected merged description to contain parts of both, got: %s", *merged.Description)
+				} else if *merged.Description != "Second test schema" {
+					t.Errorf("Expected merged description to be 'Second test schema', got: %s", *merged.Description)
 				}
 			},
 		},

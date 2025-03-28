@@ -28,38 +28,34 @@ func MergeSchemas(root *Schema, newSchema *Schema) *Schema {
 	}
 
 	// Merge Schema Metadata
-	// Generate a new ID for the merged schema
-	// only add ID to schema if it is root element
+	// Only add ID to schema if it is root element
 	if root.parent == nil {
-		mergedSchema.ID = fmt.Sprintf("merged-%s-%s", safeString(root.ID), safeString(newSchema.ID))
+		// Prioritize new schema's ID, fall back to old schema's ID if blank
+		if newSchema.ID != "" {
+			mergedSchema.ID = newSchema.ID
+		} else if root.ID != "" {
+			mergedSchema.ID = root.ID
+		} else {
+			// If both are blank, create a merged ID
+			mergedSchema.ID = fmt.Sprintf("merged-%s-%s", safeString(root.ID), safeString(newSchema.ID))
+		}
 	}
-	// Keep the schema version of the newer one (assuming this information is available)
+
+	// Keep the schema version of the newer one (this logic can remain unchanged)
 	mergedSchema.Schema = chooseLatestSchemaVersion(root.Schema, newSchema.Schema)
 
-	// Merge title and description (optional)
-	if root.Title != nil || newSchema.Title != nil {
-		title := "Merged Schema"
-		if root.Title != nil && newSchema.Title != nil {
-			title = fmt.Sprintf("Superset of %s and %s", *root.Title, *newSchema.Title)
-		} else if root.Title != nil {
-			title = *root.Title
-		} else if newSchema.Title != nil {
-			title = *newSchema.Title
-		}
-		mergedSchema.Title = &title
+	// Merge title - prioritize new schema's title, fall back to old schema's title
+	if newSchema.Title != nil {
+		mergedSchema.Title = newSchema.Title
+	} else if root.Title != nil {
+		mergedSchema.Title = root.Title
 	}
 
-	// Merge description (optional)
-	if root.Description != nil || newSchema.Description != nil {
-		var desc string
-		if root.Description != nil && newSchema.Description != nil {
-			desc = fmt.Sprintf("Combined: %s | %s", *root.Description, *newSchema.Description)
-		} else if root.Description != nil {
-			desc = *root.Description
-		} else if newSchema.Description != nil {
-			desc = *newSchema.Description
-		}
-		mergedSchema.Description = &desc
+	// Merge description - prioritize new schema's description, fall back to old schema's description
+	if newSchema.Description != nil {
+		mergedSchema.Description = newSchema.Description
+	} else if root.Description != nil {
+		mergedSchema.Description = root.Description
 	}
 
 	// Merge format - if formats conflict, omit from the merged schema
